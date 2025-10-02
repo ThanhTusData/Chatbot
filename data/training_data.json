@@ -1,0 +1,18 @@
+[
+  {"text": "hello", "intent": "greeting"},
+  {"text": "hi there", "intent": "greeting"},
+  {"text": "good morning", "intent": "greeting"},
+  {"text": "hey", "intent": "greeting"},
+  {"text": "tell me about your products", "intent": "product_inquiry"},
+  {"text": "what products do you have", "intent": "product_inquiry"},
+  {"text": "product information", "intent": "product_inquiry"},
+  {"text": "show me your items", "intent": "product_inquiry"},
+  {"text": "I need technical support", "intent": "technical_support"},
+  {"text": "help me with technical issue", "intent": "technical_support"},
+  {"text": "technical problem", "intent": "technical_support"},
+  {"text": "system not working", "intent": "technical_support"},
+  {"text": "goodbye", "intent": "goodbye"},
+  {"text": "bye", "intent": "goodbye"},
+  {"text": "see you later", "intent": "goodbye"},
+  {"text": "have a good day", "intent": "goodbye"}
+]

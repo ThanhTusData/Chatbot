@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["uvicorn", "src.serving.fastapi_app:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app:cached
+      - ./models:/app/models:cached
+      - ./indexes:/app/indexes:cached
+    environment:
+      - REQUIRE_AUTH=false
+      - INTENT_MODEL_DIR=/app/models/intent/latest
+      - INDEX_DIR=/app/indexes/kb
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:9.0.0
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./observability/grafana:/var/lib/grafana/dashboards:ro
+
+  mlflow:
+    image: "cr.fly.dev/mlflow:latest" # replace with a known mlflow image or build local
+    environment:
+      - MLFLOW_TRACKING_URI=file:/mlruns
+    volumes:
+      - ./mlruns:/mlruns
+    ports:
+      - "5000:5000"
+
+volumes:
+  redis_data:

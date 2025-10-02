@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+venv/
+models/
+data/*.db
+data/*.sqlite
+data/*.log
+logs/
+mlruns/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+# models artifacts
+models/
+mlruns/
+*.pkl
+*.h5

@@ -1,0 +1,68 @@
+name: Release (staging + canary + prod)
+env:
+PYTEST_ADDOPTS: "-m 'not integration'"
+run: |
+pip install pytest
+pytest -q
+
+
+- name: Build and push docker image
+id: build
+run: |
+TAG=${GITHUB_REF_NAME}
+IMAGE=${IMAGE_NAME}:${TAG}
+echo "IMAGE=$IMAGE" >> $GITHUB_OUTPUT
+# Example: docker build + push (replace with your registry/login steps)
+docker build -t $IMAGE .
+echo "$IMAGE"
+
+
+deploy-staging:
+runs-on: ubuntu-latest
+needs: build
+steps:
+- name: Checkout
+uses: actions/checkout@v4
+
+
+- name: Deploy to staging (placeholder)
+run: |
+echo "Replace this step with your deployment commands (kubectl/helm/ssh)."
+echo "Example: kubectl set image deployment/myapp myapp=${{ needs.build.outputs.image }}"
+# Note: you should provision kubeconfig via secrets and configure kubecontext here.
+
+
+canary:
+runs-on: ubuntu-latest
+needs: deploy-staging
+steps:
+- name: Checkout
+uses: actions/checkout@v4
+
+
+- name: Ensure script is executable
+run: |
+chmod +x ./scripts/canary_check.sh || true
+
+
+- name: Run canary checks against staging
+env:
+STAGING_URL: ${{ secrets.STAGING_URL }}
+CANARY_AUTH_HEADER: ${{ secrets.CANARY_AUTH_HEADER }}
+run: |
+./scripts/canary_check.sh "${STAGING_URL}"
+
+
+deploy-prod:
+runs-on: ubuntu-latest
+needs: canary
+environment:
+name: production
+steps:
+- name: Checkout
+uses: actions/checkout@v4
+
+
+- name: Deploy to production (placeholder)
+run: |
+echo "Replace this with your production deployment commands (kubectl/helm/ssh)."

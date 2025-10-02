@@ -1,0 +1,6 @@
+{
+  "data_path": "data/training_data.json",
+  "out_root": "models/intent",
+  "test_size": 0.2,
+  "random_seed": 42
+}

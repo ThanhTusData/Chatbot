@@ -1,0 +1,8 @@
+pandas>=1.4
+scikit-learn>=1.1
+pytest>=7.0
+flake8>=6.0
+pyyaml>=6.0
+numpy>=1.24
+scipy>=1.10
+
