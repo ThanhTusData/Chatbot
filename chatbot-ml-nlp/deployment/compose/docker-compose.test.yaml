@@ -1,0 +1,174 @@
+version: '3.8'
+
+services:
+  test-runner:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dev
+    container_name: chatbot-test-runner
+    environment:
+      - APP_ENV=testing
+      - PYTHONUNBUFFERED=1
+      - CI=true
+    volumes:
+      - ../../src:/app/src
+      - ../../tests:/app/tests
+      - ../../models:/app/models
+      - ../../indexes:/app/indexes
+      - ../../data:/app/data
+      - test-coverage:/app/htmlcov
+    command: >
+      sh -c "
+        echo 'Installing test dependencies...' &&
+        pip install -r requirements-test.txt &&
+        echo 'Running unit tests...' &&
+        pytest tests/unit/ -v --cov=src --cov-report=html --cov-report=term &&
+        echo 'Running integration tests...' &&
+        pytest tests/integration/ -v &&
+        echo 'Generating coverage report...' &&
+        coverage report &&
+        echo 'Tests completed!'
+      "
+    networks:
+      - test-network
+
+  test-api:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dev
+    container_name: chatbot-test-api
+    ports:
+      - "8001:8000"
+    environment:
+      - APP_ENV=testing
+      - DEBUG=False
+      - LOG_LEVEL=INFO
+    volumes:
+      - ../../src:/app/src
+      - ../../models:/app/models
+      - ../../indexes:/app/indexes
+      - test-logs:/app/logs
+    command: >
+      python -m uvicorn src.serving.fastapi_app:app
+      --host 0.0.0.0
+      --port 8000
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  test-integration:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dev
+    container_name: chatbot-test-integration
+    environment:
+      - APP_ENV=testing
+      - API_URL=http://test-api:8000
+    volumes:
+      - ../../tests:/app/tests
+      - test-results:/app/test-results
+    command: >
+      sh -c "
+        echo 'Waiting for API to be ready...' &&
+        sleep 10 &&
+        echo 'Running integration tests...' &&
+        pytest tests/integration/ -v --tb=short --maxfail=1 &&
+        echo 'Integration tests completed!'
+      "
+    depends_on:
+      test-api:
+        condition: service_healthy
+    networks:
+      - test-network
+
+  test-e2e:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dev
+    container_name: chatbot-test-e2e
+    environment:
+      - APP_ENV=testing
+      - API_URL=http://test-api:8000
+    volumes:
+      - ../../tests:/app/tests
+      - test-results:/app/test-results
+    command: >
+      sh -c "
+        echo 'Waiting for services...' &&
+        sleep 15 &&
+        echo 'Running E2E tests...' &&
+        pytest tests/integration/test_e2e_chat.py -v --tb=short &&
+        echo 'E2E tests completed!'
+      "
+    depends_on:
+      test-api:
+        condition: service_healthy
+    networks:
+      - test-network
+
+  lint-check:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dev
+    container_name: chatbot-lint-check
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../../src:/app/src
+      - ../../tests:/app/tests
+    command: >
+      sh -c "
+        echo 'Installing linting tools...' &&
+        pip install flake8 black mypy &&
+        echo 'Running flake8...' &&
+        flake8 src/ tests/ --count --statistics &&
+        echo 'Running black check...' &&
+        black --check src/ tests/ &&
+        echo 'Running mypy...' &&
+        mypy src/ --ignore-missing-imports &&
+        echo 'Linting completed!'
+      "
+    networks:
+      - test-network
+
+  security-scan:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dev
+    container_name: chatbot-security-scan
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../../:/app
+      - security-reports:/app/security-reports
+    command: >
+      sh -c "
+        echo 'Installing security tools...' &&
+        pip install safety bandit &&
+        echo 'Running safety check...' &&
+        safety check --json > /app/security-reports/safety-report.json || true &&
+        echo 'Running bandit scan...' &&
+        bandit -r src/ -f json -o /app/security-reports/bandit-report.json || true &&
+        echo 'Security scan completed!'
+      "
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  test-coverage:
+    driver: local
+  test-logs:
+    driver: local
+  test-results:
+    driver: local
+  security-reports:
+    driver: local

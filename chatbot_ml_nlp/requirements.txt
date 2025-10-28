@@ -1,0 +1,29 @@
+# Core ML/NLP libraries
+tensorflow>=2.10.0
+torch>=1.12.0
+transformers>=4.21.0
+spacy>=3.4.0
+scikit-learn>=1.1.0
+numpy>=1.21.0
+pandas>=1.4.0
+
+# Web framework
+flask>=2.2.0
+streamlit>=1.12.0
+
+# Voice processing
+SpeechRecognition>=3.8.0
+pyttsx3>=2.90
+
+# Additional utilities
+requests>=2.28.0
+python-dateutil>=2.8.0
+Pillow>=9.0.0
+
+# Development tools
+jupyter>=1.0.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# For PyQt5 desktop app (optional)
+PyQt5>=5.15.0

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat History - ML/NLP Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .history-container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .history-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .timestamp {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .user-msg {
+            color: #2196F3;
+            font-weight: bold;
+        }
+        .bot-msg {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <h1>Chat History</h1>
+        <a href="/chat" class="btn">Back to Chat</a>
+        
+        {% if history %}
+            {% for item in history %}
+            <div class="history-item">
+                <div class="timestamp">{{ item.timestamp }}</div>
+                <p><span class="user-msg">You:</span> {{ item.user }}</p>
+                <p><span class="bot-msg">Bot:</span> {{ item.bot }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No chat history yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

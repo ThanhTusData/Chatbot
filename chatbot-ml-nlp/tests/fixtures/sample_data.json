@@ -1,0 +1,15 @@
+{
+  "training_samples": [
+    {"text": "hello", "intent": "greeting"},
+    {"text": "hi there", "intent": "greeting"},
+    {"text": "goodbye", "intent": "farewell"},
+    {"text": "bye", "intent": "farewell"},
+    {"text": "thanks", "intent": "gratitude"}
+  ],
+  "test_queries": [
+    "how are you",
+    "what's up",
+    "see you later",
+    "thank you very much"
+  ]
+}

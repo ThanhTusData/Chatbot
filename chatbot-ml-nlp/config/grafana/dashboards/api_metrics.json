@@ -1,0 +1,43 @@
+{
+  "dashboard": {
+    "title": "Chatbot API Metrics",
+    "panels": [
+      {
+        "title": "Request Rate",
+        "targets": [
+          {
+            "expr": "rate(chatbot_requests_total[5m])"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Request Latency",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(chatbot_request_latency_seconds_bucket[5m]))"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Error Rate",
+        "targets": [
+          {
+            "expr": "rate(chatbot_requests_total{status=\"error\"}[5m])"
+          }
+        ],
+        "type": "graph"
+      },
+      {
+        "title": "Active Sessions",
+        "targets": [
+          {
+            "expr": "chatbot_active_sessions"
+          }
+        ],
+        "type": "gauge"
+      }
+    ]
+  }
+}

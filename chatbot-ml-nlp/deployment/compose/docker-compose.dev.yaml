@@ -1,0 +1,151 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dev
+    container_name: chatbot-api-dev
+    ports:
+      - "8000:8000"
+      - "5678:5678"  # Debugger port
+    environment:
+      - APP_ENV=development
+      - DEBUG=True
+      - LOG_LEVEL=DEBUG
+      - PYTHONUNBUFFERED=1
+      - ENABLE_PROMETHEUS=False
+    volumes:
+      - ../../src:/app/src
+      - ../../models:/app/models
+      - ../../indexes:/app/indexes
+      - ../../data:/app/data
+      - ../../logs:/app/logs
+      - ../../config:/app/config
+    command: >
+      python -m uvicorn src.serving.fastapi_app:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --log-level debug
+    networks:
+      - chatbot-network
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  web:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dev
+    container_name: chatbot-web-dev
+    ports:
+      - "5000:5000"
+    environment:
+      - APP_ENV=development
+      - DEBUG=True
+      - API_HOST=api
+      - API_PORT=8000
+      - FLASK_ENV=development
+    volumes:
+      - ../../src:/app/src
+      - ../../logs:/app/logs
+    command: >
+      python src/web/flask_app.py
+    depends_on:
+      - api
+    networks:
+      - chatbot-network
+    restart: unless-stopped
+
+  streamlit:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dev
+    container_name: chatbot-streamlit-dev
+    ports:
+      - "8501:8501"
+    environment:
+      - APP_ENV=development
+      - API_HOST=api
+      - API_PORT=8000
+    volumes:
+      - ../../src:/app/src
+    command: >
+      streamlit run src/streamlit_app.py
+      --server.port=8501
+      --server.address=0.0.0.0
+    depends_on:
+      - api
+    networks:
+      - chatbot-network
+    restart: unless-stopped
+
+  jupyter:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.dev
+    container_name: chatbot-jupyter-dev
+    ports:
+      - "8888:8888"
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    volumes:
+      - ../../notebooks:/app/notebooks
+      - ../../src:/app/src
+      - ../../data:/app/data
+      - ../../models:/app/models
+    command: >
+      jupyter lab
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --allow-root
+      --NotebookApp.token=''
+      --NotebookApp.password=''
+    networks:
+      - chatbot-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: chatbot-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - chatbot-network
+    restart: unless-stopped
+
+  mlflow:
+    image: python:3.10-slim
+    container_name: chatbot-mlflow-dev
+    ports:
+      - "5001:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow.db
+      - MLFLOW_ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - mlflow-data:/mlflow
+    command: >
+      sh -c "pip install mlflow && 
+             mlflow server 
+             --backend-store-uri sqlite:///mlflow/mlflow.db
+             --default-artifact-root /mlflow/artifacts
+             --host 0.0.0.0
+             --port 5000"
+    networks:
+      - chatbot-network
+    restart: unless-stopped
+
+networks:
+  chatbot-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
+  mlflow-data:
+    driver: local

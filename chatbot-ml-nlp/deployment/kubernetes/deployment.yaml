@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatbot-api
+  labels:
+    app: chatbot
+    component: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: chatbot
+      component: api
+  template:
+    metadata:
+      labels:
+        app: chatbot
+        component: api
+    spec:
+      containers:
+      - name: api
+        image: chatbot-ml-nlp:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: APP_ENV
+          value: "production"
+        - name: LOG_LEVEL
+          value: "INFO"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 5
+        volumeMounts:
+        - name: models
+          mountPath: /app/models
+          readOnly: true
+        - name: indexes
+          mountPath: /app/indexes
+          readOnly: true
+      volumes:
+      - name: models
+        persistentVolumeClaim:
+          claimName: chatbot-models-pvc
+      - name: indexes
+        persistentVolumeClaim:
+          claimName: chatbot-indexes-pvc

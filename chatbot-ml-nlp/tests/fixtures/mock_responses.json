@@ -1,0 +1,14 @@
+{
+  "greeting": [
+    "Hello! How can I help you?",
+    "Hi there! What can I do for you?"
+  ],
+  "farewell": [
+    "Goodbye! Have a great day!",
+    "See you later!"
+  ],
+  "gratitude": [
+    "You're welcome!",
+    "Happy to help!"
+  ]
+}

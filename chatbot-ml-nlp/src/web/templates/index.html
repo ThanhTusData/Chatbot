@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML/NLP Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 ML/NLP Chatbot</h1>
+            <p>Advanced chatbot with intent classification and semantic retrieval</p>
+        </header>
+        
+        <main>
+            <div class="features">
+                <div class="feature-card">
+                    <h3>💬 Chat</h3>
+                    <p>Intelligent conversation with context understanding</p>
+                    <a href="/chat" class="btn">Start Chatting</a>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>📚 History</h3>
+                    <p>View your conversation history</p>
+                    <a href="/history" class="btn">View History</a>
+                </div>
+                
+                <div class="feature-card">
+                    <h3>🔍 API</h3>
+                    <p>RESTful API for integration</p>
+                    <a href="/api/health" class="btn">Check Status</a>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Powered by TensorFlow, BERT, and FastAPI</p>
+        </footer>
+    </div>
+</body>
+</html>
